@@ -1,0 +1,159 @@
+select * from adidass;
+
+Alter table adidass 
+change column `Price per Unit` Price_per_Unit int;
+
+Alter table adidass 
+change column `Total Sales` Total_Sales int; 
+
+Alter table adidass 
+change column `Operating Profit` Operating_Profit int;
+
+Alter table adidass
+modify Retailer varchar(30);
+
+Alter table adidass 
+change column `Invoice Date` Invoice_Date varchar(25);
+
+update adidass 
+set Invoice_Date=str_to_date(Invoice_Date,"%d-%m-%Y");
+
+Alter table adidass
+modify Invoice_Date date;
+
+Alter table adidass
+modify Region varchar(30);
+
+Alter table adidass
+modify State varchar(30);
+
+Alter table adidass
+modify city varchar(30);
+
+Alter table adidass
+modify Product varchar(30);
+
+Alter table adidass 
+change column `Units Sold` Units_Sold int;
+
+Alter table adidass 
+change column `Operating Margin` Operating_Margin decimal(5,2);
+
+Alter table adidass 
+change column `Sales Method` Sales_Method  varchar(25);
+
+Alter table adidass 
+change column `Retailer ID` Retailer_ID  int;
+
+Alter table adidass
+add dayname varchar(25);
+
+Alter table adidass
+add monthname varchar(25);
+
+update adidass
+set dayname = dayname(Invoice_Date);
+
+update adidass
+set monthname = monthname(Invoice_Date);
+
+/*******************************************/
+
+# 1.How many region, state and region are there in the dataset? 
+select count(distinct region) as Region_Count, count(distinct state) as State_count,
+count(distinct city) as City_count from adidass;
+
+# 2.What are Retailer's name?  
+select distinct Retailer from adidass;
+
+# 3.Give the Retailer name with thier retaier_id
+select distinct Retailer,retailer_id from adidass;
+
+# 4.Which Product has the generated the highest revenue?
+select distinct product from adidass where
+(select sum(Total_Sales) from adidass) 
+limit 1;
+
+# 5.Which top 3 Retailer has the generated the highest revenue? 
+select distinct Retailer from adidass where
+(select sum(Total_Sales) from adidass
+order by sum(Total_Sales) desc)
+limit 3; 
+
+# 6.Show me the Total sales of each city with thier state and region.
+select distinct state, city,Region,
+sum(Total_sales) over(partition by city) as Total_sales from adidass
+order by state;
+
+# 7.Retrieve the total sales and total units sold for each product. 
+select distinct Product, sum(Total_sales) as Total_sales, sum(Units_sold) as Units_Sold
+from adidass
+group by Product;
+
+# 8.Write a query to calculate the average operating profit and operating margin for each region.
+select region, avg(Operating_Profit) as Avg_Operating_Profit,
+operating_margin from adidass
+group by region, operating_margin;
+
+# 9.Write a query to compare the total sales and operating profit for each sales method. 
+select distinct Sales_Method, sum(Total_sales) as Total_sales, sum(Operating_Profit) as Total_Operating_Profit
+from adidass
+group by Sales_Method;
+
+# 10.Determine the sales method that yields the highest average operating profit across all regions.
+select distinct sales_method, avg(Operating_Profit) as Avg_Operating_Profit from adidass
+group by Sales_Method
+order by Avg_Operating_Profit desc;
+
+# 11.Write a query to calculate the total sales for each region and city.Include the region name, city name, and total sales.
+select distinct state, city,Region,
+sum(Total_sales) over(partition by city) as Total_sales from adidass
+order by state;
+
+# 12.Show the state, city,Region whose having low operating margins.
+select distinct state, city,Region, Operating_Margin from adidass
+where Operating_Margin < 20.00;
+
+# 13.Show the city in which sales method having operating margin less than 20% 
+select distinct city,sales_method, count(Sales_Method) as Count_of_Sales_Method from adidass 
+where Operating_Margin < 20.00
+group by city, Sales_Method;
+
+# 14.In which city the total sales of each product having operating margin less than 20%.And also the Price per unit. 
+select distinct city,Product,Price_per_Unit, 
+sum(Total_Sales) over(partition by city) from adidass
+where Operating_Margin < 20.00;
+
+# 15.In which city the total sales of each product having operating margin greater than 20%.And also the Price per unit. 
+select distinct city,Product,Price_per_Unit, 
+sum(Total_Sales) over(partition by city) from adidass
+where Operating_Margin > 20.00;
+
+# 16.Give the count of each sales method
+select count(sales_method), Sales_Method from adidass
+group by Sales_Method;
+
+# Sales method should be online and In store and total sales should increase...# 
+
+# 17.From each sales method how much revenue and the average operating profit is genrating. And also show the average operating margin. 
+select sales_method, count(sales_method), avg(Total_sales) as Sum_Total_sales, 
+avg(Operating_Profit), avg(Operating_margin) from adidass
+group by Sales_Method
+order by Sum_Total_sales desc; 
+
+# 18.In each region show count of each sales method and how much revenue they have generated
+select sales_method, region, count(sales_method), sum(Total_sales) as Sum_Total_sales
+from adidass
+group by sales_method, region;
+
+# 19.How much revenue had been generated by each product and it should be categorized by sales method.
+select sales_method, Product, 
+sum(Total_sales) as Sum_Total_sales from adidass
+group by sales_method, Product;  
+
+# 20.Show the average operating profit of each retailers.
+select distinct retailer, avg(Operating_profit) as Avg_Operating_profit from adidass
+group by Retailer
+order by Avg_Operating_profit desc;
+
+
